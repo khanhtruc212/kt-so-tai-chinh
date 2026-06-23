@@ -33,6 +33,7 @@
       <button class="nav-btn" data-view="calendar"><span>🗓️</span> Lịch</button>
       <button class="nav-btn" data-view="txns"><span>🔍</span> Sổ giao dịch</button>
       <p class="nav-sep">Quản lý</p>
+      <button class="nav-btn" data-view="jars"><span>🏺</span> 6 Lọ (JARS)</button>
       <button class="nav-btn" data-view="wallets"><span>👛</span> Ví / Tài khoản</button>
       <button class="nav-btn" data-view="budget"><span>🎯</span> Ngân sách</button>
       <button class="nav-btn" data-view="recurring"><span>🔁</span> Định kỳ</button>
@@ -125,16 +126,10 @@
         </div>
         <div class="card">
           <div class="card-head-row">
-            <h3>Phân bổ thu nhập theo 6 Lọ (JARS)</h3>
-            <button class="mini-edit" id="jarsEditBtn">✏️ Sửa tỷ lệ</button>
+            <h3>Phân bổ 6 Lọ (JARS)</h3>
+            <button class="mini-edit" data-goto="jars">Quản lý →</button>
           </div>
-          <p class="muted jars-note" id="jarsNote"></p>
-          <div class="funds" id="fundsBox"></div>
-          <div class="jars-edit" id="jarsEdit" hidden></div>
-          <a class="cta-banner" data-link="jars">
-            <span class="cta-ic">🏺</span>
-            <span class="cta-txt"><strong>Làm chủ phương pháp 6 chiếc lọ</strong>Phân bổ thu nhập đúng cách để giàu bền vững →</span>
-          </a>
+          <div class="funds" id="dashJars"></div>
         </div>
       </div>
 
@@ -279,6 +274,39 @@
           </table>
         </div>
       </div>
+    </section>
+
+    <!-- ============ JARS ============ -->
+    <section class="view" id="view-jars">
+      <header class="page-head">
+        <div>
+          <h1>6 Lọ Tài Chính (JARS)</h1>
+          <p class="muted">Phương pháp của T. Harv Eker: chia mỗi đồng thu nhập vào 6 chiếc lọ — để vừa sống tốt hôm nay, vừa giàu bền vững mai sau.</p>
+        </div>
+      </header>
+
+      <div class="card">
+        <h3>Ý nghĩa từng chiếc lọ</h3>
+        <div class="jars-explain" id="jarsExplain"></div>
+      </div>
+
+      <div class="card">
+        <h3>Phân bổ thu nhập tháng này</h3>
+        <p class="muted jars-note" id="jarsNote"></p>
+        <div class="funds" id="fundsBox"></div>
+      </div>
+
+      <div class="card">
+        <h3>⚖️ Điều chỉnh tỷ lệ theo nhu cầu của bạn</h3>
+        <p class="muted">Chỉnh % từng lọ cho phù hợp hoàn cảnh (tổng nên = 100%). Hoặc chọn nhanh một mẫu bên dưới rồi tinh chỉnh:</p>
+        <div class="jars-presets" id="jarsPresets"></div>
+        <div class="jars-edit" id="jarsEdit"></div>
+      </div>
+
+      <a class="cta-banner wide" data-link="jars">
+        <span class="cta-ic">🏺</span>
+        <span class="cta-txt"><strong>Khóa học: Làm chủ phương pháp 6 chiếc lọ</strong>Hiểu sâu cách vận hành từng lọ để tiền tự sinh ra tiền →</span>
+      </a>
     </section>
 
     <!-- ============ WALLETS ============ -->

@@ -293,6 +293,16 @@ tbody tr:hover{background:var(--panel2)}
 .jars-actions{display:flex;gap:10px;align-items:center;margin-top:4px}
 .jars-actions .btn-sm{flex:0 0 auto}
 .jars-actions .mini-btn{flex:1}
+.jars-explain{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.jar-ex{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.jar-ex-h{display:flex;align-items:center;gap:9px;margin-bottom:7px}
+.jar-ex-ic{font-size:20px}
+.jar-ex-h strong{flex:1;font-size:14.5px}
+.jar-ex-pct{font-size:12px;font-weight:700;color:var(--gold-soft);background:var(--bg2);padding:2px 9px;border-radius:20px}
+.jar-ex p{font-size:13px;color:var(--muted);line-height:1.45}
+.jars-presets{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:16px}
+.jpre{background:var(--panel2);border:1px solid var(--line);color:var(--gold-soft);font:inherit;font-size:12.5px;font-weight:600;padding:8px 14px;border-radius:20px;cursor:pointer;transition:.15s}
+.jpre:hover{border-color:var(--gold);background:rgba(201,162,39,.15)}
 
 /* ---------- ACCOUNT / LOGIN ---------- */
 .account{display:flex;flex-direction:column;gap:6px}
@@ -365,7 +375,7 @@ tbody tr:hover{background:var(--panel2)}
 /* responsive */
 @media(max-width:920px){
   .kpi-grid{grid-template-columns:1fr 1fr}
-  .card-row,.concept-grid{grid-template-columns:1fr}
+  .card-row,.concept-grid,.jars-explain{grid-template-columns:1fr}
   .wallet-grid{grid-template-columns:1fr 1fr}
 }
 @media(max-width:760px){

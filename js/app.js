@@ -592,7 +592,7 @@ function renderDashboard(){
     return `<div class="ws"><div class="nm"><span class="ic">${w.icon}</span> ${esc(w.name)}</div><b style="color:${bal<0?'var(--red)':'var(--txt)'}">${fmt(bal)}</b></div>`;
   }).join('')||'<p class="muted">Chưa có ví.</p>';
 
-  renderFundsBox(mt.income);
+  renderFundsBox(mt.income,'dashJars',null);
 
   const bHtml=budgetItemsHTML();
   document.getElementById('dashBudget').innerHTML=bHtml||'<p class="empty">Chưa đặt ngân sách. Vào tab "Ngân sách" để thiết lập.</p>';
@@ -620,19 +620,50 @@ function getJars(){
   const j=state.settings&&state.settings.jars;
   return (Array.isArray(j)&&j.length)?j.map(x=>({...x})):DEFAULT_JARS.map(x=>({...x}));
 }
-function renderFundsBox(income){
+function renderFundsBox(income, boxId, noteId){
+  boxId=boxId||'fundsBox'; noteId=(noteId===undefined?'jarsNote':noteId);
   const jars=getJars(), sum=jars.reduce((a,j)=>a+(j.pct||0),0);
-  document.getElementById('fundsBox').innerHTML=jars.map(j=>fundRow(`${j.icon} ${esc(j.name)}`,(j.pct||0)+'%',income*(j.pct||0)/100)).join('');
-  const note=document.getElementById('jarsNote');
+  const box=document.getElementById(boxId);
+  if(box) box.innerHTML=jars.map(j=>fundRow(`${j.icon} ${esc(j.name)}`,(j.pct||0)+'%',income*(j.pct||0)/100)).join('');
+  const note=noteId&&document.getElementById(noteId);
   if(note) note.innerHTML = sum===100 ? `Phân bổ ${fmt(income)} thu nhập tháng theo 6 lọ.` :
-    `⚠ Tổng tỷ lệ đang là <b style="color:var(--gold-soft)">${sum}%</b> (nên = 100%). Bấm "Sửa tỷ lệ".`;
+    `⚠ Tổng tỷ lệ đang là <b style="color:var(--gold-soft)">${sum}%</b> (nên = 100%). Hãy chỉnh ở mục bên dưới.`;
 }
-let jarsEditOpen=false;
-function toggleJarsEdit(show){
-  jarsEditOpen = show===undefined ? !jarsEditOpen : show;
-  document.getElementById('jarsEdit').hidden=!jarsEditOpen;
-  document.getElementById('jarsEditBtn').textContent=jarsEditOpen?'✕ Đóng':'✏️ Sửa tỷ lệ';
-  if(jarsEditOpen) renderJarsEditor();
+
+const JAR_INFO={
+  nec:'Chi phí sống thiết yếu: ăn ở, đi lại, hóa đơn, nợ tối thiểu. Giữ ≤ 55% để không bị cuốn vào vòng "kiếm bao nhiêu tiêu hết bấy nhiêu".',
+  ffa:'Con ngỗng đẻ trứng vàng — chỉ ĐẦU TƯ, KHÔNG BAO GIỜ tiêu. Tạo thu nhập thụ động đưa bạn đến tự do tài chính.',
+  ltss:'Tiết kiệm cho mục tiêu lớn dài hạn: mua nhà, xe, quỹ khẩn cấp, kế hoạch lớn của gia đình.',
+  edu:'Đầu tư vào chính mình: sách, khóa học, coaching. Năng lực tăng → thu nhập tăng.',
+  play:'Hưởng thụ & tự thưởng mỗi tháng để giữ động lực. NÊN tiêu hết trong tháng — đây là phần thưởng cho nỗ lực.',
+  give:'Cho đi, từ thiện, giúp đỡ người khác — nuôi dưỡng tâm thế đủ đầy và phước báu.'
+};
+const JAR_PRESETS=[
+  {label:'JARS chuẩn',      pct:{nec:55,ffa:10,ltss:10,edu:10,play:10,give:5}},
+  {label:'Tiết kiệm mạnh',  pct:{nec:50,ffa:15,ltss:15,edu:10,play:5,give:5}},
+  {label:'Ưu tiên trả nợ',  pct:{nec:60,ffa:10,ltss:15,edu:5,play:5,give:5}},
+  {label:'Kiểu 50/30/20',   pct:{nec:50,ffa:0,ltss:20,edu:0,play:30,give:0}}
+];
+function renderJarsView(){
+  const income=monthTotals(curMonth).income;
+  const jars=getJars();
+  document.getElementById('jarsExplain').innerHTML=jars.map(j=>`
+    <div class="jar-ex"><div class="jar-ex-h"><span class="jar-ex-ic">${j.icon}</span>
+      <strong>${esc(j.name)}</strong><span class="jar-ex-pct">${j.pct||0}%</span></div>
+      <p>${JAR_INFO[j.key]||''}</p></div>`).join('');
+  renderFundsBox(income,'fundsBox','jarsNote');
+  renderJarsPresets();
+  renderJarsEditor();
+}
+function renderJarsPresets(){
+  const box=document.getElementById('jarsPresets');
+  box.innerHTML=JAR_PRESETS.map((p,i)=>`<button class="jpre" data-jpre="${i}">${esc(p.label)}</button>`).join('');
+  box.querySelectorAll('[data-jpre]').forEach(b=>b.addEventListener('click',()=>{
+    const p=JAR_PRESETS[+b.dataset.jpre];
+    getJars().forEach((j,i)=>{ const inp=document.querySelector(`#jarsEdit input[data-ji="${i}"]`); if(inp) inp.value=p.pct[j.key]!==undefined?p.pct[j.key]:0; });
+    const ev=new Event('input'); const first=document.querySelector('#jarsEdit input[data-ji]'); if(first) first.dispatchEvent(ev);
+    toast('Đã áp mẫu "'+p.label+'". Bấm Lưu để áp dụng.');
+  }));
 }
 function renderJarsEditor(){
   const jars=getJars(), el=document.getElementById('jarsEdit');
@@ -654,11 +685,11 @@ function renderJarsEditor(){
     const s=nj.reduce((a,j)=>a+j.pct,0);
     if(s!==100 && !confirm(`Tổng tỷ lệ là ${s}%, không bằng 100%. Vẫn lưu?`)) return;
     if(!state.settings) state.settings={};
-    state.settings.jars=nj; save(); toggleJarsEdit(false); renderDashboard(); toast('Đã lưu tỷ lệ 6 lọ');
+    state.settings.jars=nj; save(); renderJarsView(); toast('Đã lưu tỷ lệ 6 lọ');
   });
   document.getElementById('jarsReset').addEventListener('click',()=>{
     if(!state.settings) state.settings={};
-    state.settings.jars=DEFAULT_JARS.map(j=>({...j})); save(); renderJarsEditor(); renderFundsBox(monthTotals(curMonth).income); toast('Đã khôi phục tỷ lệ chuẩn');
+    state.settings.jars=DEFAULT_JARS.map(j=>({...j})); save(); renderJarsView(); toast('Đã khôi phục tỷ lệ chuẩn');
   });
 }
 
@@ -700,6 +731,7 @@ function renderAll(){
   monthPicker.value=curMonth;
   switch(activeView()){
     case 'dashboard': renderDashboard(); break;
+    case 'jars': renderJarsView(); break;
     case 'record': renderRecord(); break;
     case 'calendar': renderCalendar(); break;
     case 'txns': renderTxns(); break;
@@ -970,7 +1002,7 @@ fillCatSelects();
 fillWalletSelects();
 applyRecurring();
 renderAll();
-document.getElementById('jarsEditBtn').addEventListener('click',()=>toggleJarsEdit());
+document.querySelectorAll('[data-goto]').forEach(b=>b.addEventListener('click',()=>gotoView(b.dataset.goto)));
 initQuickAdd();
 initReminder();
 initCTALinks();
