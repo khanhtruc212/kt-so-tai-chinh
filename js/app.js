@@ -69,13 +69,27 @@ function fmtDateVN(iso){ const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; 
 function parseMoney(str){
   if(typeof str==='number') return str;
   if(!str) return 0;
-  let s=String(str).toLowerCase().trim().replace(/\s/g,'').replace(/đ|,/g,'');
+  let s=String(str).toLowerCase().trim().replace(/\s/g,'').replace(/đ/g,'');
   let mult=1;
   if(/tr|triệu|trieu|m$/.test(s)){ mult=1e6; s=s.replace(/tr|triệu|trieu|m/g,''); }
   else if(/ty|tỷ|b$/.test(s)){ mult=1e9; s=s.replace(/ty|tỷ|b/g,''); }
   else if(/k|ng|nghìn|nghin/.test(s)){ mult=1e3; s=s.replace(/k|ng|nghìn|nghin/g,''); }
+  // Chuẩn VN: '.' là phân cách hàng nghìn, ',' là dấu thập phân
+  s=s.replace(/\./g,'').replace(/,/g,'.');
   const n=parseFloat(s.replace(/[^0-9.]/g,''));
   return isNaN(n)?0:Math.round(n*mult);
+}
+function formatThousands(d){ return d?String(d).replace(/\B(?=(\d{3})+(?!\d))/g,'.'):''; }
+function attachMoneyInputs(){
+  document.querySelectorAll('input[inputmode="numeric"]').forEach(el=>{
+    if(el.dataset.moneyFmt) return; el.dataset.moneyFmt='1';
+    el.addEventListener('input',()=>{
+      if(/[a-z]/i.test(el.value)) return;            // đang gõ tắt (tr/k/ng...) → không tách nghìn
+      const digits=el.value.replace(/[^\d]/g,'');
+      const f=formatThousands(digits);
+      if(f!==el.value) el.value=f;                   // tự chèn dấu . phân cách nghìn
+    });
+  });
 }
 function fmt(n){ return (Math.round(n||0)).toLocaleString('vi-VN')+' đ'; }
 function fmtShort(n){
@@ -1002,6 +1016,7 @@ fillCatSelects();
 fillWalletSelects();
 applyRecurring();
 renderAll();
+attachMoneyInputs();
 document.querySelectorAll('[data-goto]').forEach(b=>b.addEventListener('click',()=>gotoView(b.dataset.goto)));
 initQuickAdd();
 initReminder();
