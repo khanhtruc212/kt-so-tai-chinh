@@ -279,6 +279,74 @@ tbody tr:hover{background:var(--panel2)}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 .toast.err{background:var(--red-d)}
 
+/* ---------- ACCOUNT / LOGIN ---------- */
+.account{display:flex;flex-direction:column;gap:6px}
+.login-btn{display:flex;align-items:center;justify-content:center;gap:8px;background:#fff;color:#1f2937;border:none;font:inherit;font-weight:600;font-size:13px;padding:10px;border-radius:10px;cursor:pointer;transition:.15s}
+.login-btn:hover{filter:brightness(.95)}
+.login-btn span{font-size:15px}
+.account-info{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.acc-avatar{width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0}
+.acc-meta{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.2}
+.acc-meta strong{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acc-meta span{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.logout-btn{background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:4px}
+.logout-btn:hover{color:var(--red)}
+.sync-status{font-size:11px;color:var(--muted);min-height:14px;padding-left:2px}
+
+/* ---------- HABIT BANNER (streak + reminder) ---------- */
+.habit-banner{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.streak,.reminder{display:flex;align-items:center;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px}
+.streak{background:linear-gradient(135deg,rgba(245,158,11,.18),rgba(239,68,68,.12))}
+.flame{font-size:34px;filter:drop-shadow(0 0 10px rgba(245,158,11,.5))}
+.streak-meta{display:flex;flex-direction:column;line-height:1.15}
+.streak-meta strong{font-size:26px;font-weight:800}
+.streak-meta span{font-size:12.5px;color:var(--muted)}
+.reminder-meta{display:flex;flex-direction:column;line-height:1.3}
+.reminder-meta strong{font-size:14px}
+.reminder-meta span{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.reminder-meta input[type=time]{width:auto;padding:4px 6px;font-size:12.5px}
+.switch{position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;inset:0;background:var(--panel2);border:1px solid var(--line);border-radius:30px;cursor:pointer;transition:.2s}
+.slider::before{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;background:var(--muted);border-radius:50%;transition:.2s}
+.switch input:checked + .slider{background:var(--green-d);border-color:var(--green-d)}
+.switch input:checked + .slider::before{transform:translateX(20px);background:#fff}
+
+/* ---------- CTA LEAD MAGNET ---------- */
+.cta-banner{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,rgba(201,162,39,.16),rgba(230,199,90,.06));border:1px solid rgba(201,162,39,.4);border-radius:14px;padding:14px 16px;margin-top:14px;cursor:pointer;text-decoration:none;color:var(--txt);transition:.15s}
+.cta-banner.wide{margin:0 0 18px}
+.cta-banner:hover{background:linear-gradient(135deg,rgba(201,162,39,.26),rgba(230,199,90,.12));transform:translateY(-1px)}
+.cta-ic{font-size:26px;flex-shrink:0}
+.cta-txt{display:flex;flex-direction:column;font-size:13px;color:var(--muted);line-height:1.35}
+.cta-txt strong{color:var(--gold-soft);font-size:14.5px;margin-bottom:1px}
+
+/* ---------- FAB + QUICK ADD ---------- */
+.fab{position:fixed;right:26px;bottom:26px;width:60px;height:60px;border-radius:50%;border:none;cursor:pointer;z-index:60;font-size:30px;font-weight:300;color:var(--navy);background:linear-gradient(135deg,var(--gold),var(--gold-soft));box-shadow:0 8px 24px rgba(201,162,39,.45);transition:.15s;line-height:1}
+.fab:hover{transform:scale(1.07)}
+.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:70;display:flex;align-items:flex-end;justify-content:center;animation:fade .2s}
+.sheet-overlay[hidden]{display:none}
+.sheet{width:100%;max-width:520px;background:var(--panel);border:1px solid var(--line);border-radius:20px 20px 0 0;padding:22px 22px 30px;box-shadow:var(--shadow);animation:slideup .25s ease}
+@keyframes slideup{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.sheet-head strong{font-size:17px}
+.sheet-sub{font-size:13px;color:var(--muted);margin-bottom:12px}
+.quick-presets{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+.qp{display:flex;align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px;cursor:pointer;font:inherit;color:var(--txt);text-align:left;transition:.15s}
+.qp:hover{border-color:var(--gold);transform:translateY(-1px)}
+.qp .qp-ic{font-size:22px}
+.qp .qp-meta{display:flex;flex-direction:column;line-height:1.2}
+.qp .qp-meta b{font-size:14px}
+.qp .qp-meta small{color:var(--muted);font-size:12px}
+.quick-divider{text-align:center;margin:6px 0 14px;position:relative}
+.quick-divider span{background:var(--panel);padding:0 12px;font-size:12px;color:var(--muted);position:relative;z-index:1}
+.quick-divider::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:var(--line)}
+#quickSeg{max-width:none;margin-bottom:12px}
+.quick-cats{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 16px}
+.qcat{background:var(--panel2);border:1px solid var(--line);border-radius:20px;padding:7px 13px;font-size:12.5px;cursor:pointer;color:var(--txt);transition:.15s;font:inherit}
+.qcat:hover{border-color:var(--gold)}
+.qcat.active{background:rgba(201,162,39,.22);border-color:var(--gold);color:var(--gold-soft);font-weight:600}
+#quickSave{width:100%}
+
 /* responsive */
 @media(max-width:920px){
   .kpi-grid{grid-template-columns:1fr 1fr}
@@ -290,6 +358,8 @@ tbody tr:hover{background:var(--panel2)}
   .sidebar.open{transform:none}
   .menu-toggle{display:block}
   .main{padding:64px 18px 50px}
-  .day-summary,.kpi-grid,.wallet-grid{grid-template-columns:1fr}
+  .day-summary,.kpi-grid,.wallet-grid,.habit-banner{grid-template-columns:1fr}
+  .quick-presets{grid-template-columns:1fr}
   .cal-cell{min-height:58px}
+  .fab{right:18px;bottom:18px;width:56px;height:56px}
 }

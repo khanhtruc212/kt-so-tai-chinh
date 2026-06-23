@@ -2,8 +2,16 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>KT Academy · Sổ Tài Chính</title>
+  <meta name="description" content="Quản lý tài chính cá nhân theo phương pháp KT Academy." />
+  <meta name="theme-color" content="#0f1419" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Sổ Tài Chính" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
@@ -35,6 +43,16 @@
       <button class="nav-btn" data-view="guide"><span>📖</span> Hướng dẫn</button>
     </nav>
 
+    <div class="account" id="accountBox">
+      <button id="loginBtn" class="login-btn"><span>🔐</span> Đăng nhập với Google</button>
+      <div class="account-info" id="accountInfo" hidden>
+        <img id="accAvatar" class="acc-avatar" alt="" hidden />
+        <div class="acc-meta"><strong id="accName"></strong><span id="accEmail"></span></div>
+        <button id="logoutBtn" class="logout-btn" title="Đăng xuất">⎋</button>
+      </div>
+      <span class="sync-status" id="syncStatus"></span>
+    </div>
+
     <div class="month-picker">
       <label>Tháng làm việc</label>
       <input type="month" id="monthPicker" />
@@ -63,6 +81,20 @@
           <p class="muted" id="dashSubtitle"></p>
         </div>
       </header>
+
+      <div class="habit-banner">
+        <div class="streak">
+          <span class="flame">🔥</span>
+          <div class="streak-meta"><strong id="streakDays">0</strong><span>ngày ghi chép liên tục</span></div>
+        </div>
+        <div class="reminder">
+          <label class="switch"><input type="checkbox" id="reminderToggle" /><span class="slider"></span></label>
+          <div class="reminder-meta">
+            <strong>Nhắc nhở hằng ngày</strong>
+            <span>Lúc <input type="time" id="reminderTime" value="21:00" /></span>
+          </div>
+        </div>
+      </div>
 
       <div class="kpi-grid">
         <div class="kpi kpi-networth">
@@ -94,6 +126,10 @@
         <div class="card">
           <h3>Quỹ thu nhập (10 / 5 / 85)</h3>
           <div class="funds" id="fundsBox"></div>
+          <a class="cta-banner" data-link="jars">
+            <span class="cta-ic">🏺</span>
+            <span class="cta-txt"><strong>Làm chủ phương pháp 6 chiếc lọ</strong>Phân bổ thu nhập đúng cách để giàu bền vững →</span>
+          </a>
         </div>
       </div>
 
@@ -266,6 +302,10 @@
     <!-- ============ BUDGET ============ -->
     <section class="view" id="view-budget">
       <header class="page-head"><div><h1>Ngân sách tháng</h1><p class="muted">Đặt hạn mức chi cho từng danh mục. App cảnh báo khi vượt.</p></div></header>
+      <a class="cta-banner wide" data-link="budget">
+        <span class="cta-ic">💡</span>
+        <span class="cta-txt"><strong>Khóa học: Kiểm soát chi tiêu</strong>Cắt giảm khoản lãng phí, giữ lại ít nhất 20% thu nhập mỗi tháng →</span>
+      </a>
       <div class="card">
         <h3>➕ Đặt / cập nhật ngân sách</h3>
         <form id="budgetForm" class="inline-form">
@@ -318,6 +358,10 @@
         <strong id="balanceNetWorth">0 đ</strong>
         <small id="balanceNetWorthChange"></small>
       </div>
+      <a class="cta-banner wide" data-link="assets">
+        <span class="cta-ic">🏆</span>
+        <span class="cta-txt"><strong>Khóa học: Xây tài sản – Thoát tiêu sản</strong>Biến thu nhập thành tài sản sinh lợi, tăng tài sản ròng mỗi tháng →</span>
+      </a>
       <p class="muted hint" style="margin-top:-6px;margin-bottom:14px">💡 Mẹo: bấm nút dưới để đưa tổng số dư các ví vào mục tài sản.</p>
       <button id="syncWalletsBtn" class="btn btn-sm btn-primary" style="margin-bottom:16px">↻ Cập nhật số dư ví vào tài sản</button>
       <div class="card-row">
@@ -375,6 +419,10 @@
     <section class="view" id="view-goals">
       <header class="page-head"><div><h1>Mục tiêu & Bài học</h1>
         <p class="muted">Bạn biết phải làm gì — điều quan trọng là BẠN CÓ LÀM hay không.</p></div></header>
+      <a class="cta-banner wide" data-link="goals">
+        <span class="cta-ic">🎯</span>
+        <span class="cta-txt"><strong>Đồng hành 1-1 cùng Coach KT Academy</strong>Đặt mục tiêu tài chính rõ ràng và có người giữ bạn đi đúng lộ trình →</span>
+      </a>
       <div class="card-row">
         <div class="card">
           <h3>🎯 Mục tiêu tháng này</h3>
@@ -426,8 +474,28 @@
     </section>
   </main>
 
+  <!-- QUICK ADD (1 chạm) -->
+  <button class="fab" id="fab" title="Thêm nhanh">＋</button>
+  <div class="sheet-overlay" id="quickOverlay" hidden>
+    <div class="sheet" id="quickSheet">
+      <div class="sheet-head"><strong>⚡ Thêm nhanh</strong><button id="quickClose" class="del-btn">✕</button></div>
+      <p class="sheet-sub">Bấm 1 phím tắt để ghi ngay hôm nay:</p>
+      <div class="quick-presets" id="quickPresets"></div>
+      <div class="quick-divider"><span>hoặc nhập tùy ý</span></div>
+      <div class="seg" id="quickSeg">
+        <button class="seg-btn active" data-qm="expense">💸 Chi</button>
+        <button class="seg-btn" data-qm="income">💰 Thu</button>
+      </div>
+      <input type="text" id="quickAmount" inputmode="numeric" placeholder="Số tiền (vd 50k, 1tr)" />
+      <div class="quick-cats" id="quickCats"></div>
+      <button class="btn btn-primary" id="quickSave">Lưu giao dịch</button>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="js/app.js"></script>
 </body>

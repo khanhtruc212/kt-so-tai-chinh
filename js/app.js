@@ -44,7 +44,7 @@ let recordDay = todayISO();
 let recordMode = 'expense';
 let charts = {};
 
-function blank(){ return { transactions:[], wallets:[], budgets:{}, recurring:[], balances:{}, goals:{}, reflections:{}, commits:{} }; }
+function blank(){ return { transactions:[], wallets:[], budgets:{}, recurring:[], balances:{}, goals:{}, reflections:{}, commits:{}, settings:{}, _updatedAt:0 }; }
 function load(){
   let d;
   try{ d = JSON.parse(localStorage.getItem(STORE_KEY)); }catch(e){ d=null; }
@@ -55,7 +55,7 @@ function load(){
   d.transactions.forEach(t=>{ if(!t.walletId) t.walletId=defaultW; });
   return d;
 }
-function save(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+function save(){ state._updatedAt=Date.now(); localStorage.setItem(STORE_KEY, JSON.stringify(state)); if(typeof cloudPushDebounced==='function') cloudPushDebounced(); }
 
 /* ---------- DATE HELPERS ---------- */
 function todayISO(){ return new Date().toISOString().slice(0,10); }
@@ -576,6 +576,7 @@ const PALETTE=['#22c55e','#3b82f6','#f59e0b','#ef4444','#a855f7','#06b6d4','#ec4
 function renderDashboard(){
   const mt=monthTotals(curMonth), nw=netWorthOf(curMonth), prevNet=netWorthOf(prevMonthKey(curMonth)).net;
   document.getElementById('dashSubtitle').textContent='Tháng '+curMonth.split('-').reverse().join('/');
+  document.getElementById('streakDays').textContent=computeStreak();
   document.getElementById('kpiNetWorth').textContent=fmt(nw.net);
   const diff=nw.net-prevNet, nwc=document.getElementById('kpiNetWorthChange');
   if(prevNet){ nwc.textContent=(diff>=0?'▲ +':'▼ ')+fmt(Math.abs(diff))+' so tháng trước'; nwc.className='kpi-sub '+(diff>=0?'up':'down'); } else nwc.textContent='';
@@ -685,8 +686,237 @@ function uid(){ _seq++; return 'x'+Math.abs(hashStr(Date.now()+'-'+_seq+'-'+perf
 function hashStr(s){ let h=0; for(let i=0;i<s.length;i++){ h=(h<<5)-h+s.charCodeAt(i); h|=0; } return h; }
 function esc(s){ return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
+/* ===========================================================
+   STREAK (chuỗi ngày ghi chép liên tục)
+   =========================================================== */
+function computeStreak(){
+  const set=new Set(state.transactions.map(t=>t.date));
+  if(!set.size) return 0;
+  const iso=d=>d.toISOString().slice(0,10);
+  let d=new Date(), count=0;
+  if(!set.has(iso(d))) d.setDate(d.getDate()-1); // hôm nay chưa ghi thì chưa tính là đứt
+  while(set.has(iso(d))){ count++; d.setDate(d.getDate()-1); }
+  return count;
+}
+
+/* ===========================================================
+   QUICK ADD (1 chạm)
+   =========================================================== */
+const DEFAULT_PRESETS=[
+  {icon:'☕',label:'Cà phê',amount:25000,category:'Ăn uống'},
+  {icon:'🍚',label:'Ăn trưa',amount:50000,category:'Ăn uống'},
+  {icon:'⛽',label:'Xăng xe',amount:50000,category:'Di chuyển / Xăng xe'},
+  {icon:'🛒',label:'Đi chợ',amount:100000,category:'Đi chợ / Siêu thị'}
+];
+let quickMode='expense', quickCat=EXPENSE_CATS[0].name;
+function initQuickAdd(){
+  const fab=document.getElementById('fab'), ov=document.getElementById('quickOverlay');
+  const open=()=>{ ov.hidden=false; renderQuickSheet(); setTimeout(()=>document.getElementById('quickAmount').focus(),50); };
+  const close=()=>{ ov.hidden=true; };
+  fab.addEventListener('click',open);
+  document.getElementById('quickClose').addEventListener('click',close);
+  ov.addEventListener('click',e=>{ if(e.target===ov) close(); });
+  document.querySelectorAll('#quickSeg .seg-btn').forEach(b=>b.addEventListener('click',()=>{
+    quickMode=b.dataset.qm;
+    document.querySelectorAll('#quickSeg .seg-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active');
+    quickCat=(quickMode==='expense'?EXPENSE_CATS:INCOME_CATS)[0].name; renderQuickCats();
+  }));
+  document.getElementById('quickSave').addEventListener('click',()=>{
+    const amt=parseMoney(document.getElementById('quickAmount').value);
+    if(amt<=0){ toast('Nhập số tiền hợp lệ',true); return; }
+    quickAddTx(quickMode,amt,quickCat); document.getElementById('quickAmount').value=''; close();
+  });
+  document.getElementById('quickAmount').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('quickSave').click(); });
+}
+function renderQuickSheet(){
+  const pBox=document.getElementById('quickPresets');
+  pBox.innerHTML=DEFAULT_PRESETS.map((p,i)=>`<button class="qp" data-qp="${i}">
+    <span class="qp-ic">${p.icon}</span><span class="qp-meta"><b>${p.label}</b><small>${fmt(p.amount)} · Chi</small></span></button>`).join('');
+  pBox.querySelectorAll('[data-qp]').forEach(b=>b.addEventListener('click',()=>{
+    const p=DEFAULT_PRESETS[+b.dataset.qp]; quickAddTx('expense',p.amount,p.category);
+    document.getElementById('quickOverlay').hidden=true;
+  }));
+  renderQuickCats();
+}
+function renderQuickCats(){
+  const box=document.getElementById('quickCats');
+  const list=quickMode==='expense'?EXPENSE_CATS:INCOME_CATS;
+  box.innerHTML=list.map(c=>`<button class="qcat${c.name===quickCat?' active':''}" data-qc="${esc(c.name)}">${c.icon} ${esc(c.name)}</button>`).join('');
+  box.querySelectorAll('[data-qc]').forEach(b=>b.addEventListener('click',()=>{ quickCat=b.dataset.qc; renderQuickCats(); }));
+}
+function quickAddTx(type,amount,category){
+  const wId=(state.wallets[0]||{}).id;
+  const t={id:uid(),date:todayISO(),type,amount,walletId:wId,category};
+  if(type==='income') t.source=category; else { t.content=category; t.kind='cp-bien-doi'; }
+  t.note='(Thêm nhanh)';
+  state.transactions.push(t); save();
+  toast((type==='income'?'+ Thu ':'− Chi ')+fmt(amount)+' · '+category);
+  renderAll();
+}
+
+/* ===========================================================
+   DAILY REMINDER
+   =========================================================== */
+let remTimer=null;
+function initReminder(){
+  const tgl=document.getElementById('reminderToggle'), time=document.getElementById('reminderTime');
+  const s=state.settings||(state.settings={});
+  tgl.checked=!!s.reminderOn;
+  time.value=s.reminderTime||(window.KT_CONFIG&&KT_CONFIG.reminderTime)||'21:00';
+  tgl.addEventListener('change',async()=>{
+    if(tgl.checked){ const ok=await ensureNotifyPermission(); if(!ok){ tgl.checked=false; toast('Cần cho phép thông báo trong trình duyệt',true); return; } }
+    state.settings.reminderOn=tgl.checked; state.settings.reminderTime=time.value; save(); scheduleReminder();
+    toast(tgl.checked?'Đã bật nhắc nhở hằng ngày':'Đã tắt nhắc nhở');
+  });
+  time.addEventListener('change',()=>{ state.settings.reminderTime=time.value; save(); scheduleReminder(); });
+  scheduleReminder();
+}
+async function ensureNotifyPermission(){
+  if(!('Notification'in window)) return false;
+  if(Notification.permission==='granted') return true;
+  if(Notification.permission==='denied') return false;
+  return (await Notification.requestPermission())==='granted';
+}
+function scheduleReminder(){
+  clearTimeout(remTimer);
+  const s=state.settings||{};
+  if(!s.reminderOn||!('Notification'in window)||Notification.permission!=='granted') return;
+  const [h,m]=(s.reminderTime||'21:00').split(':').map(Number);
+  const now=new Date(), next=new Date(); next.setHours(h,m,0,0);
+  if(next<=now) next.setDate(next.getDate()+1);
+  remTimer=setTimeout(()=>{ fireReminder(); scheduleReminder(); }, next-now);
+}
+function fireReminder(){
+  const has=state.transactions.some(t=>t.date===todayISO());
+  const body=has?'Bạn đã ghi chép hôm nay rồi 🔥 Xem lại tổng kết ngày nhé!':'Bạn chưa ghi chép hôm nay. Dành 1 phút ghi lại để giữ streak!';
+  try{
+    if(navigator.serviceWorker&&navigator.serviceWorker.ready)
+      navigator.serviceWorker.ready.then(r=>r.showNotification('KT · Sổ Tài Chính',{body,icon:'icon.svg',badge:'icon.svg'}));
+    else new Notification('KT · Sổ Tài Chính',{body,icon:'icon.svg'});
+  }catch(e){ toast(body); }
+}
+
+/* ===========================================================
+   LEAD-MAGNET CTA LINKS
+   =========================================================== */
+function initCTALinks(){
+  const links=(window.KT_CONFIG&&KT_CONFIG.links)||{};
+  document.querySelectorAll('[data-link]').forEach(a=>{
+    const url=links[a.dataset.link]||'#';
+    if(url&&url!=='#'){ a.href=url; a.target='_blank'; a.rel='noopener'; }
+    else a.addEventListener('click',e=>{ e.preventDefault(); toast('Liên kết khóa học chưa được cấu hình (sửa trong config.js)'); });
+  });
+}
+
+/* ===========================================================
+   PWA SERVICE WORKER
+   =========================================================== */
+function initPWA(){
+  if('serviceWorker'in navigator)
+    window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+
+/* ===========================================================
+   AUTH + CLOUD SYNC (Supabase + Google)
+   =========================================================== */
+const CFG=window.KT_CONFIG||{};
+const SB=(window.supabase&&CFG.supabaseUrl&&CFG.supabaseAnonKey)
+  ? window.supabase.createClient(CFG.supabaseUrl,CFG.supabaseAnonKey) : null;
+let currentUser=null, pushTimer=null;
+
+function syncStatus(msg){ const e=document.getElementById('syncStatus'); if(e) e.textContent=msg||''; }
+function cloudPushDebounced(){ if(!SB||!currentUser) return; clearTimeout(pushTimer); pushTimer=setTimeout(pushRemote,1500); }
+
+function mergeById(a,b){ const m=new Map(); [...(a||[]),...(b||[])].forEach(x=>{ if(x&&x.id) m.set(x.id,x); }); return [...m.values()]; }
+function mergeMap(a,b,aNewer){ return aNewer?Object.assign({},b||{},a||{}):Object.assign({},a||{},b||{}); }
+function mergeStates(local,remote){
+  const aNew=(local._updatedAt||0)>=(remote._updatedAt||0);
+  return {
+    transactions:mergeById(local.transactions,remote.transactions),
+    wallets:mergeById(local.wallets,remote.wallets),
+    recurring:mergeById(local.recurring,remote.recurring),
+    budgets:mergeMap(local.budgets,remote.budgets,aNew),
+    balances:mergeMap(local.balances,remote.balances,aNew),
+    goals:mergeMap(local.goals,remote.goals,aNew),
+    reflections:mergeMap(local.reflections,remote.reflections,aNew),
+    commits:mergeMap(local.commits,remote.commits,aNew),
+    settings:mergeMap(local.settings,remote.settings,aNew),
+    _updatedAt:Math.max(local._updatedAt||0,remote._updatedAt||0)
+  };
+}
+function adoptState(s){
+  state=Object.assign(blank(),s);
+  if(!state.wallets.length) state.wallets=[{id:'w_cash',name:'Tiền mặt',icon:'💵',initial:0}];
+  state.transactions.forEach(t=>{ if(!t.walletId) t.walletId=state.wallets[0].id; });
+  localStorage.setItem(STORE_KEY,JSON.stringify(state));
+  fillCatSelects(); fillWalletSelects(); renderAll(); initReminder();
+}
+
+async function initAuth(){
+  const loginBtn=document.getElementById('loginBtn'), logoutBtn=document.getElementById('logoutBtn');
+  loginBtn.addEventListener('click',()=>{
+    if(!SB){ toast('Chưa cấu hình Supabase — xem file config.js & hướng dẫn',true); return; }
+    SB.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.href.split('#')[0]}});
+  });
+  logoutBtn.addEventListener('click',async()=>{ if(SB) await SB.auth.signOut(); currentUser=null; renderAccount(); syncStatus('Đã đăng xuất · lưu trên thiết bị'); });
+  if(!SB){ syncStatus('💾 Lưu trên thiết bị (chưa bật cloud)'); return; }
+  SB.auth.onAuthStateChange((_e,session)=>handleSession(session));
+  try{ const {data}=await SB.auth.getSession(); handleSession(data.session); }catch(e){ syncStatus('Lỗi kết nối cloud'); }
+}
+async function handleSession(session){
+  const u=session&&session.user||null;
+  const changed=(u&&u.id)!==(currentUser&&currentUser.id);
+  currentUser=u; renderAccount();
+  if(currentUser&&changed){ await firstSync(); subscribeRealtime(); }
+}
+function renderAccount(){
+  const info=document.getElementById('accountInfo'), btn=document.getElementById('loginBtn');
+  if(currentUser){
+    info.hidden=false; btn.hidden=true;
+    const m=currentUser.user_metadata||{};
+    document.getElementById('accName').textContent=m.full_name||m.name||'Tài khoản';
+    document.getElementById('accEmail').textContent=currentUser.email||'';
+    const av=document.getElementById('accAvatar');
+    if(m.avatar_url){ av.src=m.avatar_url; av.hidden=false; } else av.hidden=true;
+  } else { info.hidden=true; btn.hidden=false; }
+}
+async function firstSync(){
+  syncStatus('⏳ Đang đồng bộ...');
+  const remote=await pullRemote();
+  if(remote) adoptState(mergeStates(state,remote));
+  await pushRemote();
+}
+async function pullRemote(){
+  try{
+    const {data,error}=await SB.from('finance_data').select('data').eq('user_id',currentUser.id).maybeSingle();
+    if(error) throw error; return data?data.data:null;
+  }catch(e){ console.warn('pull',e); syncStatus('⚠ Lỗi tải dữ liệu cloud'); return null; }
+}
+async function pushRemote(){
+  if(!SB||!currentUser) return;
+  try{
+    const {error}=await SB.from('finance_data').upsert({user_id:currentUser.id,data:state,updated_at:new Date().toISOString()});
+    if(error) throw error;
+    syncStatus('☁ Đã lưu '+new Date().toLocaleTimeString('vi-VN').slice(0,5));
+  }catch(e){ console.warn('push',e); syncStatus('⚠ Lỗi lưu cloud'); }
+}
+function subscribeRealtime(){
+  try{
+    SB.channel('fin-'+currentUser.id)
+      .on('postgres_changes',{event:'*',schema:'public',table:'finance_data',filter:'user_id=eq.'+currentUser.id},payload=>{
+        const rd=payload.new&&payload.new.data;
+        if(rd&&(rd._updatedAt||0)>(state._updatedAt||0)){ adoptState(rd); syncStatus('↻ Cập nhật từ thiết bị khác'); }
+      }).subscribe();
+  }catch(e){ console.warn('realtime',e); }
+}
+
 /* ---------- BOOT ---------- */
 fillCatSelects();
 fillWalletSelects();
 applyRecurring();
 renderAll();
+initQuickAdd();
+initReminder();
+initCTALinks();
+initPWA();
+initAuth();

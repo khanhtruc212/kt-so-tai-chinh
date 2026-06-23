@@ -1,0 +1,17 @@
+{
+  "name": "KT Academy · Sổ Tài Chính",
+  "short_name": "Sổ Tài Chính",
+  "description": "Quản lý tài chính cá nhân theo phương pháp KT Academy: thu chi, ví, ngân sách, tài sản ròng, mục tiêu.",
+  "lang": "vi",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f1419",
+  "theme_color": "#0f1419",
+  "categories": ["finance", "productivity"],
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon-maskable.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}
