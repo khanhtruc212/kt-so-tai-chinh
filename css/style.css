@@ -279,6 +279,21 @@ tbody tr:hover{background:var(--panel2)}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 .toast.err{background:var(--red-d)}
 
+/* ---------- 6 JARS EDITOR ---------- */
+.mini-edit{background:var(--panel2);border:1px solid var(--line);color:var(--gold-soft);font:inherit;font-size:12.5px;font-weight:600;padding:6px 12px;border-radius:8px;cursor:pointer;transition:.15s;white-space:nowrap}
+.mini-edit:hover{border-color:var(--gold)}
+.jars-note{font-size:12.5px;margin:-6px 0 12px}
+.jars-edit{margin-top:14px;padding-top:14px;border-top:1px dashed var(--line);display:flex;flex-direction:column;gap:10px}
+.jar-input{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.jar-input label{font-size:13.5px;color:var(--txt)}
+.jar-pct{display:flex;align-items:center;gap:6px}
+.jar-pct input{width:80px;text-align:right;padding:8px 10px}
+.jar-pct span{color:var(--muted);font-size:13px}
+.jars-sum{text-align:right;font-size:13.5px;color:var(--muted);padding-top:4px}
+.jars-actions{display:flex;gap:10px;align-items:center;margin-top:4px}
+.jars-actions .btn-sm{flex:0 0 auto}
+.jars-actions .mini-btn{flex:1}
+
 /* ---------- ACCOUNT / LOGIN ---------- */
 .account{display:flex;flex-direction:column;gap:6px}
 .login-btn{display:flex;align-items:center;justify-content:center;gap:8px;background:#fff;color:#1f2937;border:none;font:inherit;font-weight:600;font-size:13px;padding:10px;border-radius:10px;cursor:pointer;transition:.15s}

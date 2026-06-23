@@ -124,8 +124,13 @@
           <div class="wallet-strip" id="dashWallets"></div>
         </div>
         <div class="card">
-          <h3>Quỹ thu nhập (10 / 5 / 85)</h3>
+          <div class="card-head-row">
+            <h3>Phân bổ thu nhập theo 6 Lọ (JARS)</h3>
+            <button class="mini-edit" id="jarsEditBtn">✏️ Sửa tỷ lệ</button>
+          </div>
+          <p class="muted jars-note" id="jarsNote"></p>
           <div class="funds" id="fundsBox"></div>
+          <div class="jars-edit" id="jarsEdit" hidden></div>
           <a class="cta-banner" data-link="jars">
             <span class="cta-ic">🏺</span>
             <span class="cta-txt"><strong>Làm chủ phương pháp 6 chiếc lọ</strong>Phân bổ thu nhập đúng cách để giàu bền vững →</span>
@@ -457,6 +462,7 @@
           <h3>Các tính năng chính</h3>
           <ol class="steps">
             <li><strong>Ghi chép</strong> — nhập thu/chi/chuyển tiền, gõ tắt "20tr", "100k".</li>
+            <li><strong>6 Lọ (JARS)</strong> — Dashboard tự chia thu nhập theo 6 lọ; bấm "Sửa tỷ lệ" để chỉnh % theo nhu cầu.</li>
             <li><strong>Ví / Tài khoản</strong> — quản lý tiền mặt, ngân hàng, ví điện tử riêng biệt.</li>
             <li><strong>Ngân sách</strong> — đặt hạn mức chi từng danh mục, cảnh báo khi vượt.</li>
             <li><strong>Định kỳ</strong> — lương, tiền nhà tự thêm mỗi tháng.</li>
