@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KT Academy · Sổ Tài Chính</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-logo">KT</div>
+      <div class="brand-text">
+        <strong>KT Academy</strong>
+        <span>Sổ Tài Chính</span>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-btn active" data-view="dashboard"><span>📊</span> Tổng quan</button>
+      <button class="nav-btn" data-view="record"><span>📝</span> Ghi chép</button>
+      <button class="nav-btn" data-view="calendar"><span>🗓️</span> Lịch</button>
+      <button class="nav-btn" data-view="txns"><span>🔍</span> Sổ giao dịch</button>
+      <p class="nav-sep">Quản lý</p>
+      <button class="nav-btn" data-view="wallets"><span>👛</span> Ví / Tài khoản</button>
+      <button class="nav-btn" data-view="budget"><span>🎯</span> Ngân sách</button>
+      <button class="nav-btn" data-view="recurring"><span>🔁</span> Định kỳ</button>
+      <button class="nav-btn" data-view="balance"><span>🏦</span> Cân đối tài sản</button>
+      <p class="nav-sep">Theo sổ KT</p>
+      <button class="nav-btn" data-view="report"><span>📅</span> Tổng kết</button>
+      <button class="nav-btn" data-view="goals"><span>🌱</span> Mục tiêu & Bài học</button>
+      <button class="nav-btn" data-view="guide"><span>📖</span> Hướng dẫn</button>
+    </nav>
+
+    <div class="month-picker">
+      <label>Tháng làm việc</label>
+      <input type="month" id="monthPicker" />
+    </div>
+
+    <div class="quote-box">
+      "Tài chính cá nhân 80% là hành vi, 20% là kiến thức."
+    </div>
+
+    <div class="data-tools">
+      <button id="exportBtn" class="mini-btn">⬇ Xuất</button>
+      <button id="importBtn" class="mini-btn">⬆ Nhập</button>
+      <input type="file" id="importFile" accept="application/json" hidden />
+    </div>
+  </aside>
+
+  <button class="menu-toggle" id="menuToggle">☰</button>
+
+  <!-- MAIN -->
+  <main class="main">
+    <!-- ============ DASHBOARD ============ -->
+    <section class="view active" id="view-dashboard">
+      <header class="page-head">
+        <div>
+          <h1>Tổng quan</h1>
+          <p class="muted" id="dashSubtitle"></p>
+        </div>
+      </header>
+
+      <div class="kpi-grid">
+        <div class="kpi kpi-networth">
+          <span class="kpi-label">🏦 Tài sản ròng</span>
+          <strong class="kpi-value" id="kpiNetWorth">0 đ</strong>
+          <span class="kpi-sub" id="kpiNetWorthChange"></span>
+        </div>
+        <div class="kpi kpi-wallet">
+          <span class="kpi-label">👛 Tổng số dư ví</span>
+          <strong class="kpi-value" id="kpiWalletTotal">0 đ</strong>
+          <span class="kpi-sub" id="kpiWalletCount"></span>
+        </div>
+        <div class="kpi kpi-income">
+          <span class="kpi-label">💰 Thu nhập tháng</span>
+          <strong class="kpi-value" id="kpiIncome">0 đ</strong>
+        </div>
+        <div class="kpi kpi-expense">
+          <span class="kpi-label">💸 Chi tiêu tháng</span>
+          <strong class="kpi-value" id="kpiExpense">0 đ</strong>
+          <span class="kpi-sub" id="kpiSavingRate"></span>
+        </div>
+      </div>
+
+      <div class="card-row">
+        <div class="card">
+          <h3>Số dư các ví</h3>
+          <div class="wallet-strip" id="dashWallets"></div>
+        </div>
+        <div class="card">
+          <h3>Quỹ thu nhập (10 / 5 / 85)</h3>
+          <div class="funds" id="fundsBox"></div>
+        </div>
+      </div>
+
+      <div class="card-row">
+        <div class="card">
+          <h3>Cơ cấu chi tiêu theo danh mục</h3>
+          <canvas id="chartCategory" height="220"></canvas>
+          <p class="muted center" id="noCatData" hidden>Chưa có dữ liệu chi tiêu trong tháng.</p>
+        </div>
+        <div class="card">
+          <h3>Thu / Chi 6 tháng gần nhất</h3>
+          <canvas id="chartFlow" height="220"></canvas>
+        </div>
+      </div>
+
+      <div class="card-row">
+        <div class="card">
+          <h3>Tiến độ ngân sách tháng</h3>
+          <div id="dashBudget" class="dash-budget"></div>
+        </div>
+        <div class="card">
+          <h3>Top 3 khoản chi lớn nhất</h3>
+          <ol class="top-list" id="topExpenses"><li class="muted">Chưa có dữ liệu.</li></ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ RECORD ============ -->
+    <section class="view" id="view-record">
+      <header class="page-head">
+        <div>
+          <h1>Ghi chép giao dịch</h1>
+          <p class="muted">Ghi lại mọi khoản thu, chi, chuyển tiền — đừng bỏ qua dù khoản nhỏ.</p>
+        </div>
+        <input type="date" id="recordDate" class="date-input" />
+      </header>
+
+      <div class="day-summary" id="daySummary"></div>
+
+      <div class="seg" id="recordSeg">
+        <button class="seg-btn active" data-mode="expense">💸 Chi</button>
+        <button class="seg-btn" data-mode="income">💰 Thu</button>
+        <button class="seg-btn" data-mode="transfer">🔄 Chuyển tiền</button>
+      </div>
+
+      <!-- EXPENSE FORM -->
+      <div class="card form-card expense-border mode-form" id="form-expense">
+        <form id="expenseForm" class="entry-form">
+          <div class="form-2col">
+            <div><label>Số tiền <small>(20tr, 100k, 5ng...)</small></label>
+              <input type="text" name="amount" inputmode="numeric" placeholder="VD: 100k" required /></div>
+            <div><label>Ví chi tiền</label><select name="wallet" class="wallet-select"></select></div>
+          </div>
+          <label>Nội dung chi</label>
+          <input type="text" name="content" placeholder="VD: Ăn trưa, Thuê nhà..." required />
+          <div class="form-2col">
+            <div><label>Danh mục</label><select name="category" class="cat-select"></select></div>
+            <div><label>Phân loại</label><select name="kind">
+              <option value="cp-bien-doi">CP biến đổi</option>
+              <option value="cp-co-dinh">CP cố định</option>
+              <option value="tai-san">Tài sản</option>
+              <option value="tieu-san">Tiêu sản / Nợ</option>
+            </select></div>
+          </div>
+          <label>Ghi chú <small>(không bắt buộc)</small></label>
+          <input type="text" name="note" placeholder="Mua ở đâu? Mục đích?" />
+          <button type="submit" class="btn btn-expense">+ Ghi khoản chi</button>
+        </form>
+      </div>
+
+      <!-- INCOME FORM -->
+      <div class="card form-card income-border mode-form" id="form-income" hidden>
+        <form id="incomeForm" class="entry-form">
+          <div class="form-2col">
+            <div><label>Số tiền</label><input type="text" name="amount" inputmode="numeric" placeholder="VD: 20tr" required /></div>
+            <div><label>Ví nhận tiền</label><select name="wallet" class="wallet-select"></select></div>
+          </div>
+          <div class="form-2col">
+            <div><label>Nguồn thu</label><input type="text" name="source" placeholder="VD: Hoa hồng Unicity" required /></div>
+            <div><label>Danh mục</label><select name="category" class="cat-select-income"></select></div>
+          </div>
+          <div class="split-preview" id="incomeSplitPreview"></div>
+          <button type="submit" class="btn btn-income">+ Ghi khoản thu</button>
+        </form>
+      </div>
+
+      <!-- TRANSFER FORM -->
+      <div class="card form-card transfer-border mode-form" id="form-transfer" hidden>
+        <form id="transferForm" class="entry-form">
+          <div class="form-2col">
+            <div><label>Từ ví</label><select name="from" class="wallet-select"></select></div>
+            <div><label>Đến ví</label><select name="to" class="wallet-select"></select></div>
+          </div>
+          <label>Số tiền</label>
+          <input type="text" name="amount" inputmode="numeric" placeholder="VD: 2tr" required />
+          <label>Ghi chú</label>
+          <input type="text" name="note" placeholder="VD: Rút tiền, nạp ví..." />
+          <button type="submit" class="btn btn-primary">🔄 Chuyển tiền</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="card-head-row"><h3>Giao dịch ngày <span id="recordDateLabel"></span></h3></div>
+        <div class="table-wrap">
+          <table class="tx-table" id="dayTxTable">
+            <thead><tr><th>Loại</th><th>Nội dung</th><th>Danh mục · Ví</th><th class="right">Số tiền</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CALENDAR ============ -->
+    <section class="view" id="view-calendar">
+      <header class="page-head">
+        <div><h1>Lịch giao dịch</h1><p class="muted">Bấm vào một ngày để ghi chép cho ngày đó.</p></div>
+        <div class="cal-legend"><span class="dot dot-in"></span> Thu &nbsp; <span class="dot dot-out"></span> Chi</div>
+      </header>
+      <div class="card">
+        <div class="cal-grid-head">
+          <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+    </section>
+
+    <!-- ============ ALL TRANSACTIONS ============ -->
+    <section class="view" id="view-txns">
+      <header class="page-head"><div><h1>Sổ giao dịch</h1><p class="muted">Tìm kiếm và lọc toàn bộ giao dịch.</p></div></header>
+      <div class="card filters">
+        <input type="search" id="txSearch" placeholder="🔍 Tìm theo nội dung, nguồn thu, ghi chú..." />
+        <select id="txFilterType"><option value="">Tất cả loại</option><option value="expense">Chi</option><option value="income">Thu</option><option value="transfer">Chuyển tiền</option></select>
+        <select id="txFilterWallet"><option value="">Tất cả ví</option></select>
+        <select id="txFilterScope"><option value="month">Tháng đang chọn</option><option value="all">Tất cả thời gian</option></select>
+      </div>
+      <div class="card">
+        <div class="tx-totals" id="txTotals"></div>
+        <div class="table-wrap">
+          <table class="tx-table" id="allTxTable">
+            <thead><tr><th>Ngày</th><th>Loại</th><th>Nội dung</th><th>Danh mục · Ví</th><th class="right">Số tiền</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ WALLETS ============ -->
+    <section class="view" id="view-wallets">
+      <header class="page-head"><div><h1>Ví / Tài khoản</h1><p class="muted">Số dư = số dư ban đầu + thu − chi ± chuyển khoản.</p></div></header>
+      <div class="networth-banner wallet-banner">
+        <span>TỔNG SỐ DƯ TẤT CẢ VÍ</span>
+        <strong id="walletGrandTotal">0 đ</strong>
+      </div>
+      <div class="wallet-grid" id="walletGrid"></div>
+      <div class="card">
+        <h3>➕ Thêm ví mới</h3>
+        <form id="walletForm" class="inline-form wallet-add">
+          <select name="icon" class="icon-select">
+            <option value="💵">💵 Tiền mặt</option><option value="🏦">🏦 Ngân hàng</option>
+            <option value="📱">📱 Ví điện tử</option><option value="💳">💳 Thẻ tín dụng</option>
+            <option value="🪙">🪙 Tiết kiệm</option><option value="👛">👛 Khác</option>
+          </select>
+          <input type="text" name="name" placeholder="Tên ví (VD: Vietcombank)" required />
+          <input type="text" name="initial" inputmode="numeric" placeholder="Số dư ban đầu" />
+          <button class="btn btn-sm btn-primary">Thêm ví</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ============ BUDGET ============ -->
+    <section class="view" id="view-budget">
+      <header class="page-head"><div><h1>Ngân sách tháng</h1><p class="muted">Đặt hạn mức chi cho từng danh mục. App cảnh báo khi vượt.</p></div></header>
+      <div class="card">
+        <h3>➕ Đặt / cập nhật ngân sách</h3>
+        <form id="budgetForm" class="inline-form">
+          <select name="category" class="cat-select"></select>
+          <input type="text" name="limit" inputmode="numeric" placeholder="Hạn mức (đồng)" required />
+          <button class="btn btn-sm btn-primary">Lưu</button>
+        </form>
+      </div>
+      <div class="card">
+        <h3>Tiến độ ngân sách</h3>
+        <div id="budgetList" class="budget-list"></div>
+      </div>
+    </section>
+
+    <!-- ============ RECURRING ============ -->
+    <section class="view" id="view-recurring">
+      <header class="page-head"><div><h1>Giao dịch định kỳ</h1><p class="muted">Lương, tiền nhà, hóa đơn... tự thêm vào mỗi tháng đúng ngày đã hẹn.</p></div></header>
+      <div class="card">
+        <h3>➕ Thêm giao dịch định kỳ</h3>
+        <form id="recurringForm" class="entry-form rec-form">
+          <div class="form-2col">
+            <div><label>Loại</label><select name="type"><option value="expense">Chi</option><option value="income">Thu</option></select></div>
+            <div><label>Số tiền</label><input type="text" name="amount" inputmode="numeric" placeholder="VD: 10tr" required /></div>
+          </div>
+          <div class="form-2col">
+            <div><label>Tên / Nội dung</label><input type="text" name="name" placeholder="VD: Tiền thuê nhà" required /></div>
+            <div><label>Ngày trong tháng</label><input type="number" name="day" min="1" max="31" value="1" required /></div>
+          </div>
+          <div class="form-2col">
+            <div><label>Danh mục</label><select name="category" class="cat-select"></select></div>
+            <div><label>Ví</label><select name="wallet" class="wallet-select"></select></div>
+          </div>
+          <button class="btn btn-primary">+ Thêm định kỳ</button>
+        </form>
+      </div>
+      <div class="card">
+        <h3>Danh sách định kỳ</h3>
+        <div id="recurringList" class="rec-list"></div>
+      </div>
+    </section>
+
+    <!-- ============ BALANCE ============ -->
+    <section class="view" id="view-balance">
+      <header class="page-head">
+        <div><h1>Bảng cân đối tài sản</h1>
+          <p class="muted">Tài sản ròng = Tổng tài sản − Tổng tiêu sản/nợ. Con số QUAN TRỌNG NHẤT.</p></div>
+      </header>
+      <div class="networth-banner">
+        <span>TÀI SẢN RÒNG THÁNG NÀY</span>
+        <strong id="balanceNetWorth">0 đ</strong>
+        <small id="balanceNetWorthChange"></small>
+      </div>
+      <p class="muted hint" style="margin-top:-6px;margin-bottom:14px">💡 Mẹo: bấm nút dưới để đưa tổng số dư các ví vào mục tài sản.</p>
+      <button id="syncWalletsBtn" class="btn btn-sm btn-primary" style="margin-bottom:16px">↻ Cập nhật số dư ví vào tài sản</button>
+      <div class="card-row">
+        <div class="card asset-border">
+          <h3>🟢 Tài sản sinh lợi</h3>
+          <form id="assetForm" class="inline-form" data-type="asset">
+            <input type="text" name="name" placeholder="VD: Tiết kiệm, Vàng..." required />
+            <input type="text" name="value" inputmode="numeric" placeholder="Giá trị" required />
+            <button class="btn btn-sm btn-income">+</button>
+          </form>
+          <table class="bs-table" id="assetTable"><tbody></tbody>
+            <tfoot><tr><td>TỔNG TÀI SẢN</td><td class="right" id="totalAsset">0 đ</td><td></td></tr></tfoot></table>
+        </div>
+        <div class="card liab-border">
+          <h3>🔴 Tiêu sản / Nợ</h3>
+          <form id="liabForm" class="inline-form" data-type="liability">
+            <input type="text" name="name" placeholder="VD: Nợ thẻ, Vay trả góp..." required />
+            <input type="text" name="value" inputmode="numeric" placeholder="Giá trị" required />
+            <button class="btn btn-sm btn-expense">+</button>
+          </form>
+          <table class="bs-table" id="liabTable"><tbody></tbody>
+            <tfoot><tr><td>TỔNG TIÊU SẢN</td><td class="right" id="totalLiab">0 đ</td><td></td></tr></tfoot></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ REPORT ============ -->
+    <section class="view" id="view-report">
+      <header class="page-head"><div><h1>Tổng kết</h1><p class="muted">Tự động cộng dồn từ phần Ghi chép.</p></div></header>
+      <div class="card">
+        <h3>📊 Tổng kết tuần</h3>
+        <div class="table-wrap">
+          <table class="report-table" id="weekTable">
+            <thead><tr><th>Tuần</th><th class="right">Tổng thu</th><th class="right">Tổng chi</th><th class="right">Còn lại</th><th class="right">Tỷ lệ TK</th><th>Đánh giá</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card-row">
+        <div class="card"><h3>📅 Dòng tiền tháng</h3><table class="report-table simple" id="monthFlowTable"><tbody></tbody></table></div>
+        <div class="card"><h3>🧾 Phân tích chi theo phân loại</h3><table class="report-table simple" id="kindTable"><tbody></tbody></table></div>
+      </div>
+      <div class="card">
+        <h3>📂 Chi tiêu theo danh mục (tháng)</h3>
+        <div class="table-wrap">
+          <table class="report-table" id="catTable">
+            <thead><tr><th>Danh mục</th><th class="right">Số tiền</th><th class="right">Tỷ lệ</th><th>Mức độ</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ GOALS ============ -->
+    <section class="view" id="view-goals">
+      <header class="page-head"><div><h1>Mục tiêu & Bài học</h1>
+        <p class="muted">Bạn biết phải làm gì — điều quan trọng là BẠN CÓ LÀM hay không.</p></div></header>
+      <div class="card-row">
+        <div class="card">
+          <h3>🎯 Mục tiêu tháng này</h3>
+          <form id="goalsForm" class="goals-form">
+            <div class="goal-line"><label>Mục tiêu thu nhập</label><input type="text" name="incomeGoal" inputmode="numeric" placeholder="đồng" /></div>
+            <div class="goal-line"><label>Mục tiêu tiết kiệm</label><input type="text" name="savingGoal" inputmode="numeric" placeholder="đồng" /></div>
+            <div class="goal-line"><label>Mục tiêu giảm nợ</label><input type="text" name="debtGoal" inputmode="numeric" placeholder="đồng" /></div>
+            <div class="goal-line"><label>Tỷ lệ TK mục tiêu (%)</label><input type="number" name="rateGoal" placeholder="VD: 20" /></div>
+            <button class="btn btn-primary" type="submit">Lưu mục tiêu</button>
+          </form>
+        </div>
+        <div class="card"><h3>📈 Tiến độ mục tiêu</h3><div id="goalProgress" class="goal-progress"></div></div>
+      </div>
+      <div class="card"><h3>🪞 Nhìn lại tháng qua</h3><div class="reflection" id="reflectionBox"></div></div>
+      <div class="card"><h3>✅ Cam kết của tôi</h3><div class="commitments" id="commitBox"></div></div>
+    </section>
+
+    <!-- ============ GUIDE ============ -->
+    <section class="view" id="view-guide">
+      <header class="page-head"><div><h1>Hướng dẫn sử dụng</h1></div></header>
+      <div class="card">
+        <h3>4 khái niệm cơ bản</h3>
+        <div class="concept-grid">
+          <div class="concept c-income"><strong>💰 Thu nhập</strong><span>Tiền CHẢY VÀO túi bạn: lương, thưởng, thu nhập phụ, lãi tiết kiệm...</span></div>
+          <div class="concept c-expense"><strong>💸 Chi tiêu</strong><span>Tiền CHẢY RA túi bạn: ăn uống, mua sắm, hóa đơn, xăng xe...</span></div>
+          <div class="concept c-asset"><strong>🏦 Tài sản</strong><span>Thứ mang lại TIỀN cho bạn: tiết kiệm, vàng, cổ phiếu, BĐS...</span></div>
+          <div class="concept c-liab"><strong>🔴 Tiêu sản / Nợ</strong><span>Thứ LẤY TIỀN của bạn: nợ thẻ, vay trả góp, các khoản nợ khác...</span></div>
+        </div>
+      </div>
+      <div class="card-row">
+        <div class="card">
+          <h3>Các tính năng chính</h3>
+          <ol class="steps">
+            <li><strong>Ghi chép</strong> — nhập thu/chi/chuyển tiền, gõ tắt "20tr", "100k".</li>
+            <li><strong>Ví / Tài khoản</strong> — quản lý tiền mặt, ngân hàng, ví điện tử riêng biệt.</li>
+            <li><strong>Ngân sách</strong> — đặt hạn mức chi từng danh mục, cảnh báo khi vượt.</li>
+            <li><strong>Định kỳ</strong> — lương, tiền nhà tự thêm mỗi tháng.</li>
+            <li><strong>Lịch & Sổ giao dịch</strong> — xem theo ngày, tìm kiếm, lọc.</li>
+            <li><strong>Tổng kết & Mục tiêu</strong> — theo đúng cấu trúc sổ KT Academy.</li>
+          </ol>
+        </div>
+        <div class="card">
+          <h3>Công thức quan trọng</h3>
+          <div class="formula"><b>Tài sản ròng</b> = Tổng tài sản − Tổng tiêu sản/nợ<br><small>Càng tăng theo tháng = bạn đang giàu thêm!</small></div>
+          <div class="formula"><b>Tiền tiết kiệm</b> = Tổng thu − Tổng chi<br><small>Mục tiêu: ít nhất 20% thu nhập/tháng</small></div>
+          <div class="formula"><b>Tỷ lệ tiết kiệm</b> = Tiết kiệm ÷ Thu nhập × 100%<br><small>Lý tưởng &gt;20% · Khá 10–20% · Cần cố gắng &lt;10%</small></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
